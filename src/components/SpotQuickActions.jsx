@@ -42,7 +42,7 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
     );
     useEffect(() => {
         if (!ros || !connected) {
-            setBatteryInfo(null);
+            setEstopInfo(null);
             return;
         }
 
@@ -66,7 +66,7 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
 
         // Cleanup function - unsubscribe when component unmounts or dependencies change
         return () => {
-            batteryTopic.unsubscribe();
+            if (estopTopic) estopTopic.unsubscribe();
         };
     }, [ros, connected, spotName]);
 
@@ -74,17 +74,17 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
     const [motorStateInfo, setMotorStateInfo] = useState(null);
     useEffect(() => {
         if (!ros || !connected) {
-            setBatteryInfo(null);
+            setMotorStateInfo(null);
             return;
         }
 
-        const estopTopic = new ROSLIB.Topic({
+        const motorStateTopic = new ROSLIB.Topic({
             ros: ros,
             name: `/${spotName}/status/power_states`,
             messageType: 'spot_msgs/msg/PowerState'
         });
 
-        estopTopic.subscribe((message) => {
+        motorStateTopic.subscribe((message) => {
             // console.log(message);
             // console.log(message.estop_states.map(state => state.state != 2))
             setMotorStateInfo(message);
@@ -92,7 +92,7 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
 
         // Cleanup function - unsubscribe when component unmounts or dependencies change
         return () => {
-            batteryTopic.unsubscribe();
+            if (motorStateTopic) motorStateTopic.unsubscribe();
         };
     }, [ros, connected, spotName]);
 
@@ -117,7 +117,7 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
 
         // Cleanup function - unsubscribe when component unmounts or dependencies change
         return () => {
-            batteryTopic.unsubscribe();
+            if (batteryTopic) batteryTopic.unsubscribe();
         };
     }, [ros, connected, spotName]);
 
@@ -249,25 +249,25 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
                 {
                     label: 'E-Stop',
                     onClick: () => triggerFunc("estop/gentle"),
-                    disabled: !connected || estopInfo.estopped,
+                    disabled: !connected || estopInfo?.estopped,
                     color: 'red'
                 },
                 {
                     label: 'Soft E-Stop Release',
                     onClick: () => triggerFunc("estop/release"),
-                    disabled: !connected || !estopInfo.estopped,
+                    disabled: !connected || !estopInfo?.estopped,
                     color: 'red'
                 },
                 {
                     label: 'Power Off',
                     onClick: () => triggerFunc("power_off"),
-                    disabled: !connected || estopInfo.estopped,
+                    disabled: !connected || estopInfo?.estopped,
                     color: 'red'
                 },
                 {
                     label: 'Power On',
                     onClick: () => triggerFunc("power_on"),
-                    disabled: !connected || estopInfo.estopped,
+                    disabled: !connected || estopInfo?.estopped,
                     color: 'red'
                 }
             ]
@@ -278,59 +278,59 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
                 {
                     label: 'Close Gripper',
                     onClick: () => triggerFunc('close_gripper'),
-                    disabled: !connected || estopInfo.estopped,
+                    disabled: !connected || estopInfo?.estopped,
                     color: 'blue'
                 },
                 {
                     label: 'Open Gripper',
                     onClick: () => triggerFunc('open_gripper'),
-                    disabled: !connected || estopInfo.estopped,
+                    disabled: !connected || estopInfo?.estopped,
                     color: 'blue'
                 },
                 {
                     label: 'Stow',
                     onClick: () => triggerFunc('arm_stow'),
-                    disabled: !connected || estopInfo.estopped,
+                    disabled: !connected || estopInfo?.estopped,
                     color: 'blue'
                 },
                 {
                     label: 'Dock',
                     onClick: dock,
-                    disabled: !connected || loadingStates.dock || estopInfo.estopped,
+                    disabled: !connected || loadingStates.dock || estopInfo?.estopped,
                     color: 'blue',
                     loadingKey: 'dock'
                 },
                 {
                     label: 'Un-dock',
                     onClick: () => triggerFunc('undock'),
-                    disabled: !connected || loadingStates.undock || estopInfo.estopped,
+                    disabled: !connected || loadingStates.undock || estopInfo?.estopped,
                     color: 'yellow',
                     loadingKey: 'undock'
                 },
                 {
                     label: 'Stand',
                     onClick: () => triggerFunc('stand'),
-                    disabled: !connected || loadingStates.stand || estopInfo.estopped,
+                    disabled: !connected || loadingStates.stand || estopInfo?.estopped,
                     color: 'yellow',
                     loadingKey: 'stand'
                 },
                 {
                     label: 'Sit',
                     onClick: () => triggerFunc('sit'),
-                    disabled: !connected || estopInfo.estopped,
+                    disabled: !connected || estopInfo?.estopped,
                     color: 'yellow'
                 },
                 {
                     label: 'InitialPose',
                     onClick: () => goToPose(spotIntialLoc),
-                    disabled: !connected || loadingStates.navigate || estopInfo.estopped,
+                    disabled: !connected || loadingStates.navigate || estopInfo?.estopped,
                     color: 'green',
                     loadingKey: 'navigate'
                 },
                 {
                     label: 'Fiducial Pose',
                     onClick: () => goToPose(fiducialLoc),
-                    disabled: !connected || loadingStates.navigate || estopInfo.estopped,
+                    disabled: !connected || loadingStates.navigate || estopInfo?.estopped,
                     color: 'green',
                     loadingKey: 'navigate'
                 }
@@ -351,15 +351,16 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
             )}
             <p className="flex gap-2">
                 <span className="font-semibold text-gray-700">
-                    {spotName}: Initial Loc: [{spotIntialLoc.join(', ')}]
+                    {spotName}
                 </span>
                 <span className="font-semibold text-gray-700">
-                    Battery: {batteryInfo === null ? "Loading...":
-                    `${batteryInfo.battery_states[0].charge_percentage}%; Runtime: ${(batteryInfo.battery_states[0].estimated_runtime.sec / 60).toFixed(2)} min`
+                    Battery: {!batteryInfo ? "Loading...":
+                    `${batteryInfo.battery_states[0].charge_percentage}%; Runtime: ${(batteryInfo.battery_states[0].estimated_runtime.sec / 60).toFixed(2)} min; ` +
+                    `Voltage: ${batteryInfo.battery_states[0].voltage.toFixed(2)}V; Current: ${batteryInfo.battery_states[0].current.toFixed(2)}A`
                     }
                 </span>
             </p>
-            <p>E-Stop: <span className={estopInfo.estopped ? "text-red-500" : "text-gray-500"}>{estopInfo.estop_message ?? "Loading"}</span>;
+            <p>E-Stop: <span className={estopInfo?.estopped ? "text-red-500" : "text-gray-500"}>{estopInfo?.estop_message ?? "Loading"}</span>;
                 Motor: {motorStateInfo?.motor_power_state == 2 ? "On" : "Off"}</p>
 
             {/* Render button groups */}
