@@ -1,12 +1,26 @@
 import { useState } from 'react';
 import ROSLIB from 'roslib';
+import { RosType, Service } from '../types/ros';
 
 const MAX_RESPONSES = 50;
 
-export const ServiceCaller = ({ ros, selectedService, connected }) => {
-  const [requestText, setRequestText] = useState('{}');
-  const [responses, setResponses] = useState([]);
-  const [calling, setCalling] = useState(false);
+interface ServiceResponse {
+  time: string;
+  data: any;
+  isError?: boolean;
+  isLoading?: boolean;
+}
+
+interface ServiceCallerProps {
+  ros: RosType;
+  selectedService: Service | null;
+  connected: boolean;
+}
+
+export const ServiceCaller = ({ ros, selectedService, connected }: ServiceCallerProps) => {
+  const [requestText, setRequestText] = useState<string>('{}');
+  const [responses, setResponses] = useState<ServiceResponse[]>([]);
+  const [calling, setCalling] = useState<boolean>(false);
 
   const handleCallService = () => {
     if (!ros || !connected || !selectedService) {
@@ -16,8 +30,9 @@ export const ServiceCaller = ({ ros, selectedService, connected }) => {
     let request;
     try {
       request = JSON.parse(requestText);
-    } catch (e) {
-      displayResponse({ error: 'Invalid JSON: ' + e.message }, true);
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      displayResponse({ error: 'Invalid JSON: ' + errorMessage }, true);
       return;
     }
 
@@ -77,7 +92,7 @@ export const ServiceCaller = ({ ros, selectedService, connected }) => {
     );
   };
 
-  const displayResponse = (data, isError) => {
+  const displayResponse = (data: any, isError: boolean) => {
     const now = new Date();
     const timeString = now.toLocaleTimeString() + '.' + now.getMilliseconds();
 

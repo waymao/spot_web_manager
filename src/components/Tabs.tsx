@@ -1,5 +1,15 @@
-export const Tabs = ({ activeTab, onTabChange }) => {
-  const tabs = [
+interface Tab {
+  id: string;
+  label: string;
+}
+
+interface TabsProps {
+  activeTab: string;
+  onTabChange: (tabId: string) => void;
+}
+
+export const Tabs = ({ activeTab, onTabChange }: TabsProps) => {
+  const tabs: Tab[] = [
     { id: 'quick-control', label: 'Spot Quick Control' },
     { id: 'directional', label: 'Directional Control' },
     { id: 'topics', label: 'Topics' },

@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
+import type { RosType, Topic } from '../types/ros';
 
-export const useTopics = (ros, connected) => {
-  const [topics, setTopics] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+export const useTopics = (ros: RosType, connected: boolean) => {
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadTopics = useCallback(() => {
     if (!ros || !connected) {
@@ -15,15 +16,15 @@ export const useTopics = (ros, connected) => {
     setError(null);
 
     ros.getTopics(
-      (result) => {
-        const topicList = result.topics.map((name, index) => ({
+      (result: { topics: string[]; types: string[] }) => {
+        const topicList = result.topics.map((name: string, index: number) => ({
           name,
           type: result.types[index]
         }));
         setTopics(topicList);
         setLoading(false);
       },
-      (err) => {
+      (err: unknown) => {
         console.error('Error getting topics:', err);
         setError('Error loading topics');
         setLoading(false);

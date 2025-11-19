@@ -1,12 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
 import ROSLIB from 'roslib';
+import { RosType, Topic } from '../types/ros';
 
 const MAX_MESSAGES = 50;
 
-export const MessageViewer = ({ ros, selectedTopic, connected }) => {
-  const [messages, setMessages] = useState([]);
-  const [subscription, setSubscription] = useState(null);
-  const messagesRef = useRef(null);
+interface Message {
+  time: string;
+  data: any;
+}
+
+interface MessageViewerProps {
+  ros: RosType;
+  selectedTopic: Topic | null;
+  connected: boolean;
+}
+
+export const MessageViewer = ({ ros, selectedTopic, connected }: MessageViewerProps) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [subscription, setSubscription] = useState<ROSLIB.Topic | null>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!ros || !connected || !selectedTopic) {

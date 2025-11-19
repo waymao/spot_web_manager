@@ -10,12 +10,13 @@ import { DirectionalControl } from './components/DirectionalControl';
 import { useRosConnection } from './hooks/useRosConnection';
 import { useTopics } from './hooks/useTopics';
 import { useServices } from './hooks/useServices';
+import type { Topic, Service, SpotConfig } from './types/ros';
 import './App.css';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('quick-control');
-  const [selectedTopic, setSelectedTopic] = useState(null);
-  const [selectedService, setSelectedService] = useState(null);
+  const [activeTab, setActiveTab] = useState<string>('quick-control');
+  const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const {
     ros,
@@ -39,19 +40,19 @@ function App() {
     refreshServices
   } = useServices(ros, connected);
 
-  const handleTopicSelect = (topic) => {
+  const handleTopicSelect = (topic: Topic) => {
     setSelectedTopic(topic);
   };
 
-  const handleServiceSelect = (service) => {
+  const handleServiceSelect = (service: Service) => {
     setSelectedService(service);
   };
-  
-  const spotConfigs = [
+
+  const spotConfigs: SpotConfig[] = [
     {spotName: "spot", spotIntialLoc: [4, 1, -1.57], spotDockId: 549},
     {spotName: "spot2", spotIntialLoc: [2.5, 1, -1.57], spotDockId: 521}
-  ]
-  const fidualLoc = [1.5, -0.5, -1.57]; // Example fiducial location
+  ];
+  const fidualLoc: [number, number, number] = [1.5, -0.5, -1.57]; // Example fiducial location
 
   return (
     <div className="max-w-[1400px] mx-auto p-5 bg-gray-100 min-h-screen font-sans">

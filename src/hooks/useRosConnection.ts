@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import ROSLIB from 'roslib';
+import type { RosType } from '../types/ros';
 
-export const useRosConnection = (initialUrl = 'ws://128.148.138.233:9090') => {
-  const [ros, setRos] = useState(null);
-  const [connected, setConnected] = useState(false);
-  const [status, setStatus] = useState('Not connected');
-  const [serverUrl, setServerUrl] = useState(initialUrl);
+export const useRosConnection = (initialUrl: string = 'ws://128.148.138.233:9090') => {
+  const [ros, setRos] = useState<RosType>(null);
+  const [connected, setConnected] = useState<boolean>(false);
+  const [status, setStatus] = useState<string>('Not connected');
+  const [serverUrl, setServerUrl] = useState<string>(initialUrl);
 
-  const connect = useCallback((url) => {
+  const connect = useCallback((url?: string) => {
     if (ros) {
       ros.close();
     }
@@ -24,7 +25,7 @@ export const useRosConnection = (initialUrl = 'ws://128.148.138.233:9090') => {
       setConnected(true);
     });
 
-    newRos.on('error', (error) => {
+    newRos.on('error', (error: unknown) => {
       setStatus(`Error: ${error}`);
       setConnected(false);
     });

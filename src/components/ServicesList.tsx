@@ -1,8 +1,18 @@
 import { useState } from 'react';
 import { SearchBox } from './SearchBox';
+import { Service } from '../types/ros';
 
-export const ServicesList = ({ services, loading, error, onRefresh, onServiceSelect, selectedService }) => {
-  const [searchText, setSearchText] = useState('');
+interface ServicesListProps {
+  services: Service[];
+  loading: boolean;
+  error: string | null;
+  onRefresh: () => void;
+  onServiceSelect: (service: Service) => void;
+  selectedService: Service | null;
+}
+
+export const ServicesList = ({ services, loading, error, onRefresh, onServiceSelect, selectedService }: ServicesListProps) => {
+  const [searchText, setSearchText] = useState<string>('');
 
   const filteredServices = services.filter(
     (service) =>

@@ -1,8 +1,18 @@
 import { useState } from 'react';
 import { SearchBox } from './SearchBox';
+import { Topic } from '../types/ros';
 
-export const TopicsList = ({ topics, loading, error, onRefresh, onTopicSelect, selectedTopic }) => {
-  const [searchText, setSearchText] = useState('');
+interface TopicsListProps {
+  topics: Topic[];
+  loading: boolean;
+  error: string | null;
+  onRefresh: () => void;
+  onTopicSelect: (topic: Topic) => void;
+  selectedTopic: Topic | null;
+}
+
+export const TopicsList = ({ topics, loading, error, onRefresh, onTopicSelect, selectedTopic }: TopicsListProps) => {
+  const [searchText, setSearchText] = useState<string>('');
 
   const filteredTopics = topics.filter(
     (topic) =>

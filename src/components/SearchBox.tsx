@@ -1,4 +1,10 @@
-export const SearchBox = ({ value, onChange, placeholder = 'Search...' }) => {
+interface SearchBoxProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}
+
+export const SearchBox = ({ value, onChange, placeholder = 'Search...' }: SearchBoxProps) => {
   return (
     <input
       type="text"

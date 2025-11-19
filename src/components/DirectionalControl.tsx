@@ -1,10 +1,18 @@
 import ROSLIB from 'roslib';
 import { useState } from 'react';
+import { RosType } from '../types/ros';
 
-export const DirectionalControl = ({ spotName, ros, connected, disabled }) => {
-    const [activeDirection, setActiveDirection] = useState(null);
+interface DirectionalControlProps {
+    spotName: string;
+    ros: RosType;
+    connected: boolean;
+    disabled: boolean;
+}
 
-    const publishTwist = (linear_x, linear_y, angular_z) => {
+export const DirectionalControl = ({ spotName, ros, connected, disabled }: DirectionalControlProps) => {
+    const [activeDirection, setActiveDirection] = useState<string | null>(null);
+
+    const publishTwist = (linear_x: number, linear_y: number, angular_z: number) => {
         if (!ros || !connected) {
             console.error('ROS not connected');
             return;
@@ -33,7 +41,7 @@ export const DirectionalControl = ({ spotName, ros, connected, disabled }) => {
         console.log(`Published to /${spotName}/cmd_vel:`, message);
     };
 
-    const handleDirectionPress = (direction, linear_x, linear_y, angular_z) => {
+    const handleDirectionPress = (direction: string, linear_x: number, linear_y: number, angular_z: number) => {
         setActiveDirection(direction);
         publishTwist(linear_x, linear_y, angular_z);
     };
@@ -43,7 +51,16 @@ export const DirectionalControl = ({ spotName, ros, connected, disabled }) => {
         publishTwist(0, 0, 0); // Stop the robot
     };
 
-    const DirectionButton = ({ direction, label, linear_x, linear_y, angular_z, className }) => {
+    interface DirectionButtonProps {
+        direction: string;
+        label: string;
+        linear_x: number;
+        linear_y: number;
+        angular_z: number;
+        className: string;
+    }
+
+    const DirectionButton = ({ direction, label, linear_x, linear_y, angular_z, className }: DirectionButtonProps) => {
         const isActive = activeDirection === direction;
 
         return (

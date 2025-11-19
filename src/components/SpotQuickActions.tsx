@@ -1,9 +1,21 @@
-
 import ROSLIB from 'roslib';
 import { useState, useEffect } from 'react';
+import { RosType, SpotConfig } from '../types/ros';
 
+interface LoadingStates {
+    [key: string]: boolean;
+}
 
-const ActionButton = ({ loadingStates, label, onClick, disabled, color = 'blue', showLoading = false, loadingKey = null }) => {
+interface ActionButtonProps {
+    loadingStates: LoadingStates;
+    label: string;
+    onClick: () => void;
+    disabled: boolean;
+    color?: 'red' | 'blue' | 'yellow' | 'green';
+    loadingKey?: string | null;
+}
+
+const ActionButton = ({ loadingStates, label, onClick, disabled, color = 'blue', loadingKey = null }: ActionButtonProps) => {
     const isLoading = loadingKey && loadingStates[loadingKey];
 
     const colorClasses = {
@@ -27,9 +39,38 @@ const ActionButton = ({ loadingStates, label, onClick, disabled, color = 'blue',
     );
 };
 
-export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) => {
-    const { spotIP, spotName, spotIntialLoc, spotDockId } = spotConfig;
-    const [loadingStates, setLoadingStates] = useState({
+interface EStopInfo {
+    estopped: boolean;
+    estop_message: string;
+}
+
+interface MotorStateInfo {
+    motor_power_state: number;
+}
+
+interface BatteryState {
+    charge_percentage: number;
+    estimated_runtime: {
+        sec: number;
+    };
+    voltage: number;
+    current: number;
+}
+
+interface BatteryInfo {
+    battery_states: BatteryState[];
+}
+
+interface SpotQuickActionsProps {
+    spotConfig: SpotConfig & { spotIP?: string };
+    ros: RosType;
+    connected: boolean;
+    fiducialLoc: [number, number, number];
+}
+
+export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }: SpotQuickActionsProps) => {
+    const { spotName, spotIntialLoc, spotDockId } = spotConfig;
+    const [loadingStates, setLoadingStates] = useState<LoadingStates>({
         dock: false,
         undock: false,
         stand: false,
@@ -37,8 +78,8 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
     });
 
     // estop logic
-    const [estopInfo, setEstopInfo] = useState(
-        {estopped: false, estop_status: ""}
+    const [estopInfo, setEstopInfo] = useState<EStopInfo | null>(
+        {estopped: false, estop_message: ""}
     );
     useEffect(() => {
         if (!ros || !connected) {
@@ -52,12 +93,12 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
             messageType: 'spot_msgs/msg/EStopStateArray'
         });
 
-        estopTopic.subscribe((message) => {
+        estopTopic.subscribe((message: any) => {
             // console.log(message);
             // console.log(message.estop_states.map(state => state.state != 2))
-            const estopped = message.estop_states.some(state => state.state != 2)
-            const estop_reasons = message.estop_states.filter(state => state.state != 2).map(state => state.name)
-            
+            const estopped = message.estop_states.some((state: any) => state.state != 2)
+            const estop_reasons = message.estop_states.filter((state: any) => state.state != 2).map((state: any) => state.name)
+
             setEstopInfo({
                 estopped,
                 estop_message: estopped ? "Engaged: " + estop_reasons.join("; ") : "Off"
@@ -71,7 +112,7 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
     }, [ros, connected, spotName]);
 
     // motor state
-    const [motorStateInfo, setMotorStateInfo] = useState(null);
+    const [motorStateInfo, setMotorStateInfo] = useState<MotorStateInfo | null>(null);
     useEffect(() => {
         if (!ros || !connected) {
             setMotorStateInfo(null);
@@ -84,7 +125,7 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
             messageType: 'spot_msgs/msg/PowerState'
         });
 
-        motorStateTopic.subscribe((message) => {
+        motorStateTopic.subscribe((message: any) => {
             // console.log(message);
             // console.log(message.estop_states.map(state => state.state != 2))
             setMotorStateInfo(message);
@@ -98,7 +139,7 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
 
 
     // battery topic
-    const [batteryInfo, setBatteryInfo] = useState(null);
+    const [batteryInfo, setBatteryInfo] = useState<BatteryInfo | null>(null);
     useEffect(() => {
         if (!ros || !connected) {
             setBatteryInfo(null);
@@ -111,7 +152,7 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
             messageType: 'spot_msgs/msg/BatteryStateArray'
         });
 
-        batteryTopic.subscribe((message) => {
+        batteryTopic.subscribe((message: any) => {
             setBatteryInfo(message);
         });
 
@@ -121,7 +162,7 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
         };
     }, [ros, connected, spotName]);
 
-    const setLoading = (action, isLoading) => {
+    const setLoading = (action: string, isLoading: boolean) => {
         setLoadingStates(prev => ({ ...prev, [action]: isLoading }));
     };
 
@@ -156,7 +197,7 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
         );
     };
 
-    const triggerFunc = (topicName) => {
+    const triggerFunc = (topicName: string) => {
         if (!ros || !connected || loadingStates[topicName]) {
             console.error('ROS not connected or already loading');
             return;
@@ -185,7 +226,7 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
         );
     };
 
-    const goToPose = (loc) => {
+    const goToPose = (loc: [number, number, number]) => {
         if (!ros || !connected || loadingStates.navigate) {
             console.error('ROS not connected or already loading');
             return;
@@ -241,33 +282,46 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
 
     // Reusable Action Button Component
 
+    interface ButtonConfig {
+        label: string;
+        onClick: () => void;
+        disabled: boolean;
+        color: 'red' | 'blue' | 'yellow' | 'green';
+        loadingKey?: string;
+    }
+
+    interface ButtonGroup {
+        name: string;
+        buttons: ButtonConfig[];
+    }
+
     // Button configurations
-    const buttonGroups = [
+    const buttonGroups: ButtonGroup[] = [
         {
             name: 'Emergency & Power',
             buttons: [
                 {
                     label: 'E-Stop',
                     onClick: () => triggerFunc("estop/gentle"),
-                    disabled: !connected || estopInfo?.estopped,
+                    disabled: !connected || (estopInfo?.estopped || false),
                     color: 'red'
                 },
                 {
                     label: 'Soft E-Stop Release',
                     onClick: () => triggerFunc("estop/release"),
-                    disabled: !connected || !estopInfo?.estopped,
+                    disabled: !connected || !(estopInfo?.estopped || false),
                     color: 'red'
                 },
                 {
                     label: 'Power Off',
                     onClick: () => triggerFunc("power_off"),
-                    disabled: !connected || estopInfo?.estopped,
+                    disabled: !connected || (estopInfo?.estopped || false),
                     color: 'red'
                 },
                 {
                     label: 'Power On',
                     onClick: () => triggerFunc("power_on"),
-                    disabled: !connected || estopInfo?.estopped,
+                    disabled: !connected || (estopInfo?.estopped || false),
                     color: 'red'
                 }
             ]
@@ -278,59 +332,59 @@ export const SpotQuickActions = ({ spotConfig, ros, connected, fiducialLoc }) =>
                 {
                     label: 'Close Gripper',
                     onClick: () => triggerFunc('close_gripper'),
-                    disabled: !connected || estopInfo?.estopped,
+                    disabled: !connected || (estopInfo?.estopped || false),
                     color: 'blue'
                 },
                 {
                     label: 'Open Gripper',
                     onClick: () => triggerFunc('open_gripper'),
-                    disabled: !connected || estopInfo?.estopped,
+                    disabled: !connected || (estopInfo?.estopped || false),
                     color: 'blue'
                 },
                 {
                     label: 'Stow',
                     onClick: () => triggerFunc('arm_stow'),
-                    disabled: !connected || estopInfo?.estopped,
+                    disabled: !connected || (estopInfo?.estopped || false),
                     color: 'blue'
                 },
                 {
                     label: 'Dock',
                     onClick: dock,
-                    disabled: !connected || loadingStates.dock || estopInfo?.estopped,
+                    disabled: !connected || loadingStates.dock || (estopInfo?.estopped || false),
                     color: 'blue',
                     loadingKey: 'dock'
                 },
                 {
                     label: 'Un-dock',
                     onClick: () => triggerFunc('undock'),
-                    disabled: !connected || loadingStates.undock || estopInfo?.estopped,
+                    disabled: !connected || loadingStates.undock || (estopInfo?.estopped || false),
                     color: 'yellow',
                     loadingKey: 'undock'
                 },
                 {
                     label: 'Stand',
                     onClick: () => triggerFunc('stand'),
-                    disabled: !connected || loadingStates.stand || estopInfo?.estopped,
+                    disabled: !connected || loadingStates.stand || (estopInfo?.estopped || false),
                     color: 'yellow',
                     loadingKey: 'stand'
                 },
                 {
                     label: 'Sit',
                     onClick: () => triggerFunc('sit'),
-                    disabled: !connected || estopInfo?.estopped,
+                    disabled: !connected || (estopInfo?.estopped || false),
                     color: 'yellow'
                 },
                 {
                     label: 'InitialPose',
                     onClick: () => goToPose(spotIntialLoc),
-                    disabled: !connected || loadingStates.navigate || estopInfo?.estopped,
+                    disabled: !connected || loadingStates.navigate || (estopInfo?.estopped || false),
                     color: 'green',
                     loadingKey: 'navigate'
                 },
                 {
                     label: 'Fiducial Pose',
                     onClick: () => goToPose(fiducialLoc),
-                    disabled: !connected || loadingStates.navigate || estopInfo?.estopped,
+                    disabled: !connected || loadingStates.navigate || (estopInfo?.estopped || false),
                     color: 'green',
                     loadingKey: 'navigate'
                 }

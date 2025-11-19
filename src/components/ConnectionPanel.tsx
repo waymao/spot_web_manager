@@ -1,7 +1,14 @@
 import { useState } from 'react';
 
-export const ConnectionPanel = ({ serverUrl, status, connected, onConnect }) => {
-  const [url, setUrl] = useState(serverUrl);
+interface ConnectionPanelProps {
+  serverUrl: string;
+  status: string;
+  connected: boolean;
+  onConnect: (url: string) => void;
+}
+
+export const ConnectionPanel = ({ serverUrl, status, connected, onConnect }: ConnectionPanelProps) => {
+  const [url, setUrl] = useState<string>(serverUrl);
 
   const handleConnect = () => {
     onConnect(url);

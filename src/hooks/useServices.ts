@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
+import type { RosType, Service } from '../types/ros';
 
-export const useServices = (ros, connected) => {
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+export const useServices = (ros: RosType, connected: boolean) => {
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadServices = useCallback(() => {
     if (!ros || !connected) {
@@ -15,15 +16,15 @@ export const useServices = (ros, connected) => {
     setError(null);
 
     ros.getServices(
-      (serviceNames) => {
-        const servicePromises = serviceNames.map((name) => {
-          return new Promise((resolve) => {
+      (serviceNames: string[]) => {
+        const servicePromises = serviceNames.map((name: string) => {
+          return new Promise<Service>((resolve) => {
             ros.getServiceType(
               name,
-              (type) => {
+              (type: string) => {
                 resolve({ name, type });
               },
-              (err) => {
+              (err: unknown) => {
                 console.error(`Error getting service type for ${name}:`, err);
                 resolve({ name, type: 'unknown' });
               }
@@ -36,7 +37,7 @@ export const useServices = (ros, connected) => {
           setLoading(false);
         });
       },
-      (err) => {
+      (err: unknown) => {
         console.error('Error getting services:', err);
         setError('Error loading services');
         setLoading(false);
