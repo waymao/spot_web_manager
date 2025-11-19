@@ -11,7 +11,7 @@ export const TopicsList = ({ topics, loading, error, onRefresh, onTopicSelect, s
   );
 
   return (
-    <div className="flex-1 bg-white p-5 rounded-lg shadow-md">
+    <div className="flex-1 bg-white">
       <h2 className="text-xl font-bold mb-4">Available Topics</h2>
       <SearchBox
         value={searchText}

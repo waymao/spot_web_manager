@@ -92,7 +92,7 @@ export const ServiceCaller = ({ ros, selectedService, connected }) => {
   };
 
   return (
-    <div className="flex-1 bg-white p-5 rounded-lg shadow-md">
+    <div className="flex-1 bg-white">
       <h2 className="text-xl font-bold mb-4">Call Service</h2>
       <p className="mb-4">
         {selectedService

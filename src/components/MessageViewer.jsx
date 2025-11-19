@@ -67,7 +67,7 @@ export const MessageViewer = ({ ros, selectedTopic, connected }) => {
   };
 
   return (
-    <div className="flex-1 bg-white p-5 rounded-lg shadow-md">
+    <div className="flex-1 bg-white">
       <h2 className="text-xl font-bold mb-4">Messages</h2>
       <p id="subscription-info" className="mb-2">
         {selectedTopic ? `Subscribed to: ${selectedTopic.name}` : 'Select a topic to subscribe'}
